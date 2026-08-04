@@ -1,0 +1,6 @@
+.DS_Store
+*.bak
+
+# Generated CV archive (personal — not committed)
+resume/by-repo/
+resume/INDEX.md
