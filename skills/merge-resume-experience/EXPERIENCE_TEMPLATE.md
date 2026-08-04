@@ -16,6 +16,7 @@
 | Date range | _MMM YYYY – MMM YYYY (or Present)_ |
 | Location | _ |
 | Manifest | _resume/experiences/{slug}.yml_ |
+| LinkedIn format | _flat | sectioned_ |
 
 **One-line context (for CV header under the job):**  
 _
@@ -24,9 +25,9 @@ _
 
 ## Source repositories
 
-| Repository | Per-repo source file | Feature clusters | Generated |
-| ---------- | -------------------- | ---------------- | --------- |
-| _org/repo_ | _by-repo/{slug}/RESUME_EXPERIENCE_…_ | _N_ | _YYYY-MM-DD_ |
+| Repository | Project | Per-repo source file | Feature clusters | Generated |
+| ---------- | ------- | -------------------- | ---------------- | --------- |
+| _org/repo_ | _Client name_ | _by-repo/{slug}/RESUME_EXPERIENCE_…_ | _N_ | _YYYY-MM-DD_ |
 
 ---
 
@@ -83,12 +84,15 @@ Skills: Lang, Framework, Datastore, Tests, Cloud, …
 **Rules applied:**
 
 - Bullets merged from all repos in the manifest; duplicates collapsed by theme/outcome.
+- When projects are defined, client names appear inline in bullets.
 - Metrics only when evidenced in a source doc.
 - Skills: union of tech from all sources, deduped, comma-separated.
 
 ---
 
-## LinkedIn export (Experience entry — copy to profile)
+## LinkedIn export (flat — copy to profile)
+
+> Use when manifest has no `projects` block. Copy fields below into LinkedIn → Experience.
 
 **Title:** _Role Title_  
 **Company:** _Company / Product name_  
@@ -110,6 +114,35 @@ _Optional 1–2 sentence overview of scope and impact across all repos in this e
 
 ---
 
+## LinkedIn export (sectioned — copy to profile)
+
+> Use when manifest defines `projects` (e.g. one employer, multiple client sections). Copy the block below into a single LinkedIn Experience entry.
+
+**Title:** _Role Title_  
+**Company:** _Employer name (e.g. Vinta Software)_  
+**Dates:** _Overall MMM YYYY – MMM YYYY (or Present)_  
+**Location:** _City, Country or Remote_  
+**Employment type:** _Contract | Full-time | …_
+
+**Description:**
+
+_2–3 sentence employer-wide intro — contract scope, cross-cutting themes, tech stack. Do not repeat per-project intros here._
+
+PROJECT NAME (MMM YYYY – MMM YYYY)
+
+• _Project bullet 1_  
+• _Project bullet 2_  
+• _Project bullet 3_
+
+OTHER PROJECT (MMM YYYY – MMM YYYY)
+
+• _Project bullet 1_  
+• _Project bullet 2_
+
+**Skills to tag (optional):** _comma-separated list_
+
+---
+
 ## Merge notes
 
 > What was deduped, dropped, or needs your review.
@@ -124,4 +157,4 @@ _Optional 1–2 sentence overview of scope and impact across all repos in this e
 
 | Date | Change |
 | ---- | ------ |
-| _YYYY-MM-DD_ | Merged from _N_ repo source(s) via `/merge-resume-experience {slug}` |
+| _YYYY-MM-DD_ | Merged from _N_ repo source(s) via `/merge-resume-experience {slug}` (_flat | sectioned_) |

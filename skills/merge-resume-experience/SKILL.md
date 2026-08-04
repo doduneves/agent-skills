@@ -6,7 +6,8 @@ description: >-
   "/merge-resume-experience", "merge resume experience", "combine repo resumes",
   or "aggregate CV from repos". Args: "/merge-resume-experience {slug}" — manifest
   at resume/experiences/{slug}.yml; optional "--refresh" re-runs /generate-resume
-  on each repo in the manifest first.
+  on each repo in the manifest first. Supports optional projects for sectioned
+  LinkedIn exports (one employer, multiple client/project sections).
 disable-model-invocation: true
 ---
 
@@ -20,7 +21,7 @@ Requires prior `/generate-resume` runs for each repo (or use `--refresh`).
 
 Resolve paths from the skill directory:
 
-1. `SKILL_DIR` — directory containing this `SKILL.md`.
+1. `SKILL_DIR` — directory containing this `SKILL.md` (follow symlinks).
 2. `AGENT_SKILLS_ROOT` — parent of `skills/` (repo root).
 3. `RESUME_ROOT` — `{AGENT_SKILLS_ROOT}/resume/`
 4. `EXPERIENCES_DIR` — `{RESUME_ROOT}/experiences/`
@@ -41,20 +42,64 @@ Resolve paths from the skill directory:
 
 ## Manifest schema (`resume/experiences/{slug}.yml`)
 
+### Top-level fields
+
 | Field | Required | Notes |
 | ----- | -------- | ----- |
 | `slug` | yes | Must match filename stem and output folder |
-| `company` | yes | Employer / product name for exports |
+| `company` | yes | Employer name for exports (e.g. Vinta Software) |
 | `role` | yes | Job title |
-| `dates` | yes | e.g. `Apr 2026 – Present` |
+| `dates` | yes | Overall span, e.g. `Nov 2025 – Aug 2026` |
 | `location` | no | e.g. `Remote`, `São Paulo, Brazil` |
-| `context` | no | One-line scope; agent may refine from sources |
-| `repos` | yes* | Local paths for `--refresh`; each may include optional `slug` |
+| `context` | no | One-line scope for ATS header; also seeds LinkedIn intro when sectioned |
+| `employment_type` | no | e.g. `Contract` — shown in LinkedIn export header |
+| `repos` | yes* | Flat repo list; used when `projects` absent, or as fallback for `--refresh` |
+| `projects` | no | Client/project groupings for sectioned LinkedIn (see below) |
 | `sources` | no | Pinned paths relative to `resume/`; overrides auto-latest lookup |
+| `linkedin_format` | no | `flat` (default) or `sectioned`. Default `sectioned` when `projects` is set |
+| `project_order` | no | `reverse_chron` (default) or `manifest` — order of LinkedIn project sections |
 | `max_bullets_ats` | no | Default `8` |
-| `max_bullets_linkedin` | no | Default `8` |
+| `max_bullets_linkedin` | no | Default `8`; total cap for flat LinkedIn only |
 
-\*At least one of `repos` (for refresh) or `sources` (for merge) must be usable. For merge without refresh, resolve sources from `repos[].slug` or infer slug from each repo path.
+\*At least one of `repos`, `projects[].repos`, or `sources` must be usable.
+
+### Projects block (optional — sectioned LinkedIn)
+
+Use when one employer entry covers multiple client or internal projects (e.g. contract at Vinta across Everself, Origin, Building Blocks).
+
+```yaml
+projects:
+  - name: Origin Therapy
+    dates: Apr 2026 – Jul 2026
+    max_bullets: 4
+    repos:
+      - path: ~/Apps/origin/origin-apps
+        slug: origin-apps
+  - name: Everself
+    dates: Nov 2025 – Mar 2026
+    max_bullets: 4
+    repos:
+      - path: ~/Apps/bariendo/medplum-provider
+        slug: medplum-provider
+      - path: ~/Apps/bariendo/medplum-provider-scripts
+        slug: medplum-provider-scripts
+```
+
+| Project field | Required | Notes |
+| ------------- | -------- | ----- |
+| `name` | yes | Section header in LinkedIn export (client or product name) |
+| `dates` | no | Shown in section header; omit if same as manifest |
+| `max_bullets` | no | Default `4` — cap per project section |
+| `repos` | yes | Same shape as top-level `repos` (`path`, optional `slug`) |
+
+When `projects` is set:
+
+- **`--refresh`** iterates all repos from every project (dedupe by slug).
+- **Source resolution** maps each repo slug to its per-repo doc.
+- **LinkedIn** uses sectioned export (intro + project blocks).
+- **ATS** uses flat export with client names inline in bullets.
+
+When `projects` is absent → flat merge for both ATS and LinkedIn (existing behavior).
 
 ## Steps
 
@@ -63,11 +108,13 @@ Resolve paths from the skill directory:
 1. Parse flags: `REFRESH=true` when `--refresh` present.
 2. Resolve paths (see **Archive location**).
 3. Read `{EXPERIENCES_DIR}/{slug}.yml`. Validate required fields.
-4. Record export limits: `max_bullets_ats`, `max_bullets_linkedin` (defaults 8).
+4. Detect mode: `SECTIONED=true` when `projects` is non-empty, or when `linkedin_format: sectioned`.
+5. Build repo list: union of `repos` and all `projects[].repos` (dedupe by slug).
+6. Record export limits: `max_bullets_ats`, `max_bullets_linkedin`, per-project `max_bullets` (default 4).
 
 ### 2. Refresh per-repo sources (when `--refresh`)
 
-For each entry in `repos`:
+For each unique repo in the manifest:
 
 1. Resolve `path` (expand `~`, relative to workspace).
 2. Follow the **generate-resume** skill for that path (invoke `/generate-resume {path}` workflow — new dated file in `by-repo/{repo-slug}/`, update `INDEX.md`).
@@ -75,10 +122,10 @@ For each entry in `repos`:
 
 ### 3. Resolve source files
 
-For each repo in the manifest:
+For each repo slug in the manifest:
 
 1. If `sources` is set in the manifest → use those paths (must exist under `{RESUME_ROOT}/`).
-2. Else for each `repos[].slug` (or inferred slug) → pick the **newest** `RESUME_EXPERIENCE_*.md` in `{RESUME_ROOT}/by-repo/{slug}/` (by date in filename, then mtime).
+2. Else → pick the **newest** `RESUME_EXPERIENCE_*.md` in `{RESUME_ROOT}/by-repo/{slug}/` (by date in filename, then mtime).
 3. If no source file found for a repo → stop and tell user to run `/generate-resume {path}` or use `--refresh`.
 
 ### 4. Extract content from each source
@@ -96,14 +143,39 @@ If a source predates ATS/LinkedIn export sections, use polished bullets and tech
 
 ### 5. Merge logic
 
+#### 5a. Shared
+
 1. **Metadata** — use manifest `company`, `role`, `dates`, `location`, `context` (refine context from sources if manifest empty).
-2. **Collect** all bullets from polished lists, feature outcome bullets, and existing export blocks across sources.
-3. **Cluster & dedupe** — merge bullets that describe the same outcome, feature, or theme (e.g. billing in API + web → one bullet). Prefer the stronger wording (metrics, scope, outcome).
-4. **Rank** — metrics > cross-cutting impact > domain depth > narrow UI tweaks. Drop chore-only or redundant lines.
-5. **Cap** — top `max_bullets_ats` for ATS export; top `max_bullets_linkedin` for LinkedIn (may match ATS or add slightly more narrative).
-6. **Skills** — union keywords from all sources' Skills lines and **Tech used**; dedupe; comma-separated.
-7. **Exports** — plain text in ATS block: no PR numbers, repo paths, or internal jargon.
-8. **Merge notes** — record what was deduped, dropped, or needs human review.
+2. **Skills** — union keywords from all sources' Skills lines and **Tech used**; dedupe; comma-separated.
+3. **Merge notes** — record what was deduped, dropped, or needs human review.
+
+#### 5b. ATS export (always flat)
+
+1. **Collect** all bullets from all repos across projects (or flat `repos`).
+2. **Cluster & dedupe globally** — merge bullets that describe the same outcome across repos/projects.
+3. **Rank** — metrics > cross-cutting impact > domain depth > narrow UI tweaks.
+4. **Prefix client names** when `projects` is set — lead bullets with project name where it aids clarity, e.g. *"For Origin Therapy, built ops-portal FHIR template lifecycle tooling…"*
+5. **Cap** — top `max_bullets_ats`.
+6. Plain text only: no PR numbers, repo paths, or internal jargon.
+
+#### 5c. LinkedIn export — flat mode (`projects` absent)
+
+Same as before: collect all bullets, dedupe globally, rank, cap `max_bullets_linkedin`. Optional 1–2 sentence overview from `context`.
+
+#### 5d. LinkedIn export — sectioned mode (`projects` set)
+
+1. **Intro** — 2–3 sentences from manifest `context` (contract/employer-wide scope; no per-project repetition).
+2. **Project order** — `reverse_chron` by `projects[].dates` (default), or manifest order when `project_order: manifest`.
+3. **Per project:**
+   - Section header: `NAME (dates)` in ALL CAPS or Title Case on its own line (blank line before).
+   - Collect bullets only from that project's repos.
+   - Dedupe/rank **within the project** (merge bullets from multiple repos in same project, e.g. medplum-provider + scripts).
+   - Do **not** dedupe across projects — keep sections distinct.
+   - Cap at `projects[].max_bullets` (default 4).
+4. **Header fields** — manifest `company`, `role`, overall `dates`, `location`, optional `employment_type`.
+5. **Skills to tag** — union from all sources (same as ATS).
+
+Fill **LinkedIn export (sectioned)** in the output doc. Leave **LinkedIn export (flat)** empty or omit when sectioned.
 
 ### 6. Write output (new file only)
 
@@ -116,7 +188,9 @@ If a source predates ATS/LinkedIn export sections, use polished bullets and tech
    - Ensure `{EXPERIENCE_DIR}/` exists.
 
 3. Fill template sections from merge results.
-4. Update **Changelog** with today's date and source count.
+   - When sectioned: fill **LinkedIn export (sectioned)**; skip or mark N/A the flat LinkedIn block.
+   - When flat: fill **LinkedIn export (flat)** only.
+4. Update **Changelog** with today's date, source count, and mode (flat vs sectioned).
 
 ### 7. Update experience index
 
@@ -141,23 +215,26 @@ Personal archive of employer/role docs merged by `/merge-resume-experience`.
 
 - Output file path
 - Manifest used
+- Merge mode: flat or sectioned (with project names if sectioned)
 - Source files merged (with dates)
 - Whether `--refresh` ran and which repos were updated
 - Index updated at `{RESUME_ROOT}/EXPERIENCE_INDEX.md`
-- Bullet counts before/after dedupe
-- Copy **ATS export** / **LinkedIn export** into CV or LinkedIn
+- Bullet counts before/after dedupe (ATS global; LinkedIn per project if sectioned)
+- Copy **ATS export** to master CV
+- Copy **LinkedIn export (sectioned)** or **LinkedIn export (flat)** to LinkedIn profile
 - Items flagged in **Merge notes** for review
 
 ## Rules
 
-- Never mutate `EXPERIENCE_TEMPLATE.md` or `{EXPERIENCES_DIR}/example.yml`.
+- Never mutate `EXPERIENCE_TEMPLATE.md` or `{EXPERIENCES_DIR}/example.yml` during a merge run.
 - Never overwrite existing merged output — always new dated file.
 - Manifest metadata wins over per-repo Role/context for the merged entry.
 - Do not invent metrics or ownership not present in source docs.
-- One experience slug = one employer/role entry; different companies = different manifests.
+- One experience slug = one employer/role entry. Multiple client projects under one employer use `projects` in a single manifest (e.g. `vinta.yml`).
 - Per-repo docs remain the evidence layer; merged doc is the copy-paste layer for CV/LinkedIn.
 
 ## Related
 
 - **Layer 1:** `/generate-resume` — one repo → `resume/by-repo/{slug}/`
 - **Example manifest:** `{EXPERIENCES_DIR}/example.yml` → copy to `{EXPERIENCES_DIR}/{slug}.yml`
+- **Multi-project example:** `{EXPERIENCES_DIR}/vinta.yml` — Vinta contract with Everself, Origin, Building Blocks
