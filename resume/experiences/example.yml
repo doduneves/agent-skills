@@ -1,0 +1,30 @@
+# Copy to resume/experiences/{slug}.yml and edit paths for your machine.
+# Example: cp resume/experiences/example.yml resume/experiences/acme.yml
+
+slug: acme
+company: Acme Corp
+role: Software Engineer
+dates: Jan 2024 – Present
+location: Remote
+
+# One-line scope for ATS header and LinkedIn overview (optional — agent may refine from repo docs)
+context: >-
+  Built and shipped features across web and API services for a B2B SaaS platform.
+
+# Local git repo paths — used with --refresh to re-run /generate-resume on each repo.
+# slug is optional; defaults to remote repo name or directory basename.
+repos:
+  - path: ~/path/to/acme-web
+    slug: acme-web
+  # - path: ~/path/to/acme-api
+  #   slug: acme-api
+
+# Pin specific per-repo source files (paths relative to resume/).
+# When omitted, the merge skill uses the newest RESUME_EXPERIENCE_* file in each by-repo/{slug}/ folder.
+# sources:
+#   - by-repo/acme-web/RESUME_EXPERIENCE_2026-01-01_acme-web.md
+#   - by-repo/acme-api/RESUME_EXPERIENCE_2026-01-01_acme-api.md
+
+# Export limits for the merged experience entry
+max_bullets_ats: 8
+max_bullets_linkedin: 8
