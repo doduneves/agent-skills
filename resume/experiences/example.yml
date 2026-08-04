@@ -28,6 +28,7 @@ repos:
 # Export limits for the merged experience entry
 max_bullets_ats: 8
 max_bullets_linkedin: 8
+use_profile: true
 
 # --- Optional: sectioned LinkedIn (one employer, multiple client projects) ---
 # Use when one job entry covers multiple clients under the same employer (e.g. Vinta contract).

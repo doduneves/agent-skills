@@ -1,0 +1,58 @@
+# Copy to resume/profile.yml and edit with your personal inventory.
+#   cp resume/profile.example.yml resume/profile.yml
+#
+# Used by /generate-resume and /merge-resume-experience to enrich Skills lines
+# and default role/tone. Repo evidence always comes first — profile never invents stack.
+
+identity:
+  default_role: Software Engineer          # fallback when manifest/repo omits title
+  location: Remote
+  employment_type: Full-time               # Contract | Full-time | Part-time
+
+# Your full skill inventory — edit categories to match your career
+skills:
+  backend:
+    - Node.js
+    - Python
+    - REST APIs
+  frontend:
+    - React
+    - TypeScript
+    - Tailwind CSS
+  devops:
+    - Docker
+    - CI/CD
+  observability:
+    - Sentry
+    - Monitoring
+  databases:
+    - PostgreSQL
+    - Redis
+
+export_rules:
+  mode: evidence_first
+
+  # When a repo doc mentions a keyword, pull skills from that category
+  category_triggers:
+    react: frontend
+    postgres: databases
+    sentry: observability
+    docker: devops
+
+  core_always_include:
+    - TypeScript
+
+  export_exclude: []                     # skills to keep off job exports, e.g. MCP
+
+  max_skills_ats: 15
+  max_skills_linkedin: 12
+
+senior_framing:
+  enabled: false                           # set true to prefer senior verbs on bullets
+  verbs:
+    - Led
+    - Owned
+    - Architected
+
+cv_summary: >-
+  Optional 2–3 sentence blurb for your master CV header — not copied into per-job exports.

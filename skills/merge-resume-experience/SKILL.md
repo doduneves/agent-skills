@@ -28,6 +28,8 @@ Resolve paths from the skill directory:
 5. `EXPERIENCE_DIR` — `{RESUME_ROOT}/by-experience/{slug}/`
 6. Template — `{SKILL_DIR}/EXPERIENCE_TEMPLATE.md`
 7. Example manifest — `{EXPERIENCES_DIR}/example.yml`
+8. Personal profile — `{RESUME_ROOT}/profile.yml` (optional; see **Personal profile**)
+9. Profile template — `{RESUME_ROOT}/profile.example.yml`
 
 ## Invocation
 
@@ -60,6 +62,7 @@ Resolve paths from the skill directory:
 | `project_order` | no | `reverse_chron` (default) or `manifest` — order of LinkedIn project sections |
 | `max_bullets_ats` | no | Default `8` |
 | `max_bullets_linkedin` | no | Default `8`; total cap for flat LinkedIn only |
+| `use_profile` | no | Default `true` — load `profile.yml` for skills enrichment and role fallback |
 
 \*At least one of `repos`, `projects[].repos`, or `sources` must be usable.
 
@@ -111,6 +114,7 @@ When `projects` is absent → flat merge for both ATS and LinkedIn (existing beh
 4. Detect mode: `SECTIONED=true` when `projects` is non-empty, or when `linkedin_format: sectioned`.
 5. Build repo list: union of `repos` and all `projects[].repos` (dedupe by slug).
 6. Record export limits: `max_bullets_ats`, `max_bullets_linkedin`, per-project `max_bullets` (default 4).
+7. Load profile when `use_profile` is not `false` and `{RESUME_ROOT}/profile.yml` exists (see **Personal profile**).
 
 ### 2. Refresh per-repo sources (when `--refresh`)
 
@@ -145,9 +149,10 @@ If a source predates ATS/LinkedIn export sections, use polished bullets and tech
 
 #### 5a. Shared
 
-1. **Metadata** — use manifest `company`, `role`, `dates`, `location`, `context` (refine context from sources if manifest empty).
-2. **Skills** — union keywords from all sources' Skills lines and **Tech used**; dedupe; comma-separated.
-3. **Merge notes** — record what was deduped, dropped, or needs human review.
+1. **Metadata** — use manifest `company`, `role`, `dates`, `location`, `context` (refine context from sources if manifest empty). Role fallback: `identity.default_role` from profile when manifest `role` empty.
+2. **Skills** — union keywords from all sources' Skills lines and **Tech used**; dedupe; apply **profile enrichment** (see **Personal profile**); comma-separated.
+3. **Senior framing** — when profile loaded and `senior_framing.enabled`, upgrade bullet verbs where evidence supports senior scope (architectural, cross-cutting, owned systems).
+4. **Merge notes** — record what was deduped, dropped, profile skills added, or needs human review.
 
 #### 5b. ATS export (always flat)
 
@@ -223,6 +228,38 @@ Personal archive of employer/role docs merged by `/merge-resume-experience`.
 - Copy **ATS export** to master CV
 - Copy **LinkedIn export (sectioned)** or **LinkedIn export (flat)** to LinkedIn profile
 - Items flagged in **Merge notes** for review
+- Whether `profile.yml` was loaded and which profile skills were added
+
+## Personal profile (`resume/profile.yml`)
+
+Optional gitignored file. Copy from `profile.example.yml`. Both `/generate-resume` and this skill use it with **evidence-first** rules.
+
+### When to load
+
+- Manifest `use_profile: false` → skip profile entirely.
+- Else if `{RESUME_ROOT}/profile.yml` exists → load and enrich.
+- Else → repo-only skills (current behavior).
+
+### Enrichment algorithm (merged Skills line)
+
+1. **Union** skills from all source docs (ATS Skills lines, Tech used, Short CV stack).
+2. **Scan** combined source text for keywords in `export_rules.category_triggers`.
+3. For each match → append skills from that profile category, excluding `export_rules.export_exclude`.
+4. Include `core_always_include` when any source uses TypeScript/React stack.
+5. **Dedupe**, order repo-evidenced skills first, then profile additions.
+6. **Cap** at manifest override or `export_rules.max_skills_ats` / `max_skills_linkedin`.
+
+### Role, intro, and bullets
+
+- **Role:** manifest `role` wins; fallback `identity.default_role`.
+- **LinkedIn intro:** may incorporate `cv_summary` themes when aligned with manifest `context` — do not replace manifest context.
+- **Senior framing:** prefer `senior_framing.verbs` on ranked bullets when scope warrants it; never on dropped/low-signal items.
+
+### What profile must NOT do
+
+- Add Python, NestJS, Azure, Redis, etc. to exports unless a source doc or repo trigger keyword evidences them.
+- Add AI/MCP skills when listed in `export_exclude`.
+- Invent metrics, client names, or features not in source docs.
 
 ## Rules
 
@@ -238,3 +275,4 @@ Personal archive of employer/role docs merged by `/merge-resume-experience`.
 - **Layer 1:** `/generate-resume` — one repo → `resume/by-repo/{slug}/`
 - **Example manifest:** `{EXPERIENCES_DIR}/example.yml` → copy to `{EXPERIENCES_DIR}/{slug}.yml`
 - **Multi-project example:** `{EXPERIENCES_DIR}/vinta.yml` — Vinta contract with Everself, Origin, Building Blocks
+- **Personal profile:** `{RESUME_ROOT}/profile.yml` — senior skill inventory and export enrichment

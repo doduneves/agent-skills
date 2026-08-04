@@ -6,7 +6,9 @@ resume/by-repo/
 resume/by-experience/
 resume/INDEX.md
 resume/EXPERIENCE_INDEX.md
+resume/profile.yml
 resume/experiences/*.yml
 resume/experiences/*.yaml
 !resume/experiences/example.yml
 !resume/experiences/README.md
+!resume/profile.example.yml
