@@ -1,0 +1,17 @@
+slug: origin
+company: Origin Therapy
+role: Software Engineer (contract / Vinta)
+dates: May 2025 – Jul 2026
+location: Remote
+context: >-
+  Built and shipped FHIR-backed features for Origin Therapy's in-home pediatric
+  therapy platform — patient onboarding, therapist matching and waitlists,
+  discipline-specific intake/chart templates, provider caseload, and ops tooling
+  on Medplum.
+
+repos:
+  - path: ~/Apps/origin/origin-apps
+    slug: origin-apps
+
+max_bullets_ats: 6
+max_bullets_linkedin: 8

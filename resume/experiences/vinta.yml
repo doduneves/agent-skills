@@ -1,0 +1,41 @@
+slug: vinta
+company: Vinta Software
+role: Senior Software Engineer
+dates: Nov 2025 – Aug 2026
+location: Remote
+use_profile: true
+
+context: >-
+  Delivering full-stack features across React/Next.js provider applications,
+  authentication/RBAC, shared component architecture, observability, and
+  production-safe healthcare data operations.
+
+linkedin_format: sectioned
+project_order: reverse_chron
+
+max_bullets_ats: 8
+max_bullets_linkedin: 12
+
+projects:
+  - name: Origin Therapy
+    dates: Apr 2026 – Jul 2026
+    max_bullets: 4
+    repos:
+      - path: ~/Apps/origin/origin-apps
+        slug: origin-apps
+
+  - name: Building Blocks
+    dates: Apr 2026
+    max_bullets: 3
+    repos:
+      - path: ~/Apps/building-blocks
+        slug: building-blocks
+
+  - name: Everself
+    dates: Nov 2025 – Mar 2026
+    max_bullets: 4
+    repos:
+      - path: ~/Apps/bariendo/medplum-provider
+        slug: medplum-provider
+      - path: ~/Apps/bariendo/medplum-provider-scripts
+        slug: medplum-provider-scripts

@@ -1,0 +1,112 @@
+# Personal skills profile — gitignored; edit freely.
+
+identity:
+  default_role: Senior Software Engineer
+  location: Remote
+  employment_type: Contract
+
+skills:
+  backend:
+    - Node.js
+    - NestJS
+    - Express
+    - Python
+    - FastAPI
+    - Django
+    - REST APIs
+    - Authentication & Authorization
+    - Event-driven architecture
+    - SQL optimization
+  frontend:
+    - React
+    - TypeScript
+    - Next.js
+    - Tailwind CSS
+    - shadcn/ui
+    - Component architecture
+    - Responsive UI
+  devops:
+    - Docker
+    - GitHub Actions
+    - CI/CD
+    - Azure
+    - Vercel
+  observability:
+    - Sentry
+    - Logging
+    - Monitoring
+    - Performance analysis
+  ai:
+    - AI workflows
+    - Prompt engineering
+    - MCP
+    - AI-assisted development
+  databases:
+    - PostgreSQL
+    - MySQL
+    - SQL Server
+    - Redis
+    - SQL optimization
+
+export_rules:
+  mode: evidence_first
+
+  category_triggers:
+    sentry: observability
+    tailwind: frontend
+    shadcn: frontend
+    "next.js": frontend
+    nextjs: frontend
+    react: frontend
+    vite: frontend
+    mantine: frontend
+    tanstack: frontend
+    medplum: backend
+    fhir: backend
+    vitest: frontend
+    playwright: frontend
+    vercel: devops
+    docker: devops
+    "github actions": devops
+    postgres: databases
+    postgresql: databases
+    mysql: databases
+    redis: databases
+    express: backend
+    nestjs: backend
+    fastapi: backend
+    django: backend
+    twilio: backend
+    mailgun: backend
+    "better auth": backend
+    healthie: backend
+    "access polic": backend
+    rbac: backend
+    authorization: backend
+
+  core_always_include:
+    - TypeScript
+    - React
+
+  export_exclude:
+    - MCP
+    - Prompt engineering
+    - AI-assisted development
+    - AI workflows
+
+  max_skills_ats: 18
+  max_skills_linkedin: 15
+
+senior_framing:
+  enabled: true
+  verbs:
+    - Architected
+    - Established
+    - Owned
+    - Drove
+    - Led
+
+cv_summary: >-
+  Senior full-stack engineer delivering FHIR/Medplum healthcare platforms,
+  auth/RBAC, shared component architecture, observability, and production-safe
+  data operations across TypeScript/React and Next.js monorepos.

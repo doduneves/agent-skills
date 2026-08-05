@@ -1,0 +1,19 @@
+slug: everself
+company: Everself
+role: Software Engineer (contract / Vinta)
+dates: Nov 2025 – Mar 2026
+location: Remote
+context: >-
+  Built and shipped FHIR-backed provider tooling for Everself, a non-surgical
+  weight-loss care platform (ESG procedures, concierge program) — scheduling,
+  clinical timelines, lab orders, telephony, and Healthie procedure-stage
+  automation — plus production-safe Medplum backfill scripts for data hygiene.
+
+repos:
+  - path: ~/Apps/bariendo/medplum-provider
+    slug: medplum-provider
+  - path: ~/Apps/bariendo/medplum-provider-scripts
+    slug: medplum-provider-scripts
+
+max_bullets_ats: 6
+max_bullets_linkedin: 8

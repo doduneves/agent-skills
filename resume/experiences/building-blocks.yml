@@ -1,0 +1,14 @@
+slug: building-blocks
+company: Vinta
+role: Software Engineer (contract / Vinta)
+dates: Mar 2025 – Apr 2026   # adjust to your actual span
+location: Remote
+context: >-
+  Start the Building Blocks project to help Vinta clients build their own open-source/white-labelFHIR-backed tools and applications.
+
+repos:
+  - path: ~/Apps/building-blocks          # your local clone
+    slug: building-blocks
+
+max_bullets_ats: 2
+max_bullets_linkedin: 6
